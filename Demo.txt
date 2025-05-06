@@ -1,0 +1,16 @@
+variables to be used by data
+<variables> start
+a b
+</variables> end
+formulas
+<formulas>
+a+b
+</formulas>
+data to variable
+first  line a = 1 b = 2
+second line a = 2 b = 4.0
+whitescape is used to split data
+<data>
+1 2
+2 4.0
+</data>

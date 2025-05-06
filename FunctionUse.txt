@@ -1,0 +1,12 @@
+<variables>
+a
+</variables>
+<formulas>
+sum(a)
+average(a)
+variance(a)
+</formulas>
+first line a = [10,11,13,14]
+<data>
+[10,11,13,14]
+</data>
