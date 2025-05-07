@@ -5,12 +5,12 @@ a b
 formulas
 <formulas>
 a+b
+area=a * b
+area/2
 </formulas>
-data to variable
-first  line a = 1 b = 2
-second line a = 2 b = 4.0
-whitescape is used to split data
 <data>
+;Rect1
 1 2
+;Rect2
 2 4.0
 </data>

@@ -2,9 +2,9 @@
 a
 </variables>
 <formulas>
-sum(a)
-average(a)
-variance(a)
+func.sum(a)
+func.average(a)
+func.variance(a)
 </formulas>
 first line a = [10,11,13,14]
 <data>

@@ -3,8 +3,8 @@
 theta
 </variables>
 <formulas>
-f-setprec(10)
-sin(theta)
+f-context.setprec(10)
+func.sin(theta)
 </formulas>
 <data>
 pi/6
