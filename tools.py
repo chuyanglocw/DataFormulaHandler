@@ -7,28 +7,39 @@ end_line ="</formulas>"
 
 data_end_line = "</data>"
 
+py_end_line = "</py>"
+
+data_file_end = "</dataf>"
+
+py_file_end = "</pyf>"
+
+excle_file_end = "</excel>"
 
 funcuse = "f-"
 
 temp_variable = "="
 
-datatitle = ";"
+datalabel = ";"
 
 class Context:
 	def __init__(self):
 		self.prec = 12
+		self.py_self_define = {}
 
 	def setprec(self, prec):
 		self.prec = prec
 
-class Qeue:
+	def setpyselfdefine(self,p):
+		self.py_self_define = p
+
+class Queue:
 	def __init__(self, array: list):
 		self.data = array
 
-	def enqeue(self,value):
+	def enqueue(self,value):
 		self.data.append(value)
 
-	def deqeue(self):
+	def dequeue(self):
 		if not self.empty():
 			return self.data.pop(0)
 		else :
@@ -41,20 +52,20 @@ class Qeue:
 		return self
 
 	def __next__(self):
-		return self.deqeue()
+		return self.dequeue()
 
 def print_begine_collect_variables():
 	print("------------------- 开始 输入变量 -------------------")
 def print_end_collect_variables():
 	print("------------------- 结束 输入变量 -------------------")
-def collect_variables(qeue: Qeue) -> list:
+def collect_variables(queue: Queue) -> list:
 	'''
 	版本：0.1
 	作用：获得变量表
 	'''
 	print_begine_collect_variables()
 	variables = []
-	for v_line in qeue:
+	for v_line in queue:
 		v_line = v_line.replace("\n","")
 		if v_line == None or v_line.startswith(variable_end_line):
 			break
@@ -64,36 +75,39 @@ def collect_variables(qeue: Qeue) -> list:
 	print_end_collect_variables()
 	return variables
 
+
 def print_begine_exec_py():
 	print("------------------- 开始 执行脚本 -------------------")
 def print_end_exec_py():
 	print("------------------- 结束 执行脚本 -------------------")
-# def exec_py(qeue: Qeue) -> str:
-# 	'''
-# 	版本：0.1
-# 	作用：获得脚本来执行
-# 	'''
-# 	print_begine_exec_py()
-# 	cmd = ""
-# 	for cmd_line in qeue:
-# 		if cmd_line == None or cmd_line.startswith(py_end_line):
-# 			break
-# 		cmd = f"{cmd}{cmd_line}"
-# 	print_end_exec_py()
-# 	return cmd
+def exec_py(queue: Queue, context: Context):
+	'''
+	版本：0.1
+	作用：获得脚本来执行
+	'''
+	print_begine_exec_py()
+	cmd = ""
+	for cmd_line in queue:
+		if cmd_line == None or cmd_line.startswith(py_end_line):
+			break
+		cmd = f"{cmd}{cmd_line}"
+	print_end_exec_py()
+	py_self_define = {}
+	exec(cmd, None, py_self_define)
+	context.setpyselfdefine(py_self_define)
 
 def print_begine_collect_formulas():
 	print("------------------- 开始 输入公式 -------------------")
 def print_end_collect_formulas():
 	print("------------------- 结束 输入公式 -------------------")
-def collect_formulas(qeue: Qeue) -> list:
+def collect_formulas(queue: Queue) -> list:
 	'''
 	版本：0.1
 	作用：获得公式表
 	'''
 	print_begine_collect_formulas()
 	formulas = []
-	for f_line in qeue:
+	for f_line in queue:
 		if f_line == None or f_line.startswith(end_line):
 			break
 		f_line = f_line.replace("\n","")
@@ -107,27 +121,27 @@ def print_data_title():
 	print("-----------------------------------------------------")
 def print_hanle_data():
 	print("--------------------- 处理数据 ----------------------")
-def handle_data(qeue: Qeue, variables: list, formulas: list, context: Context) -> bool:
+def handle_data(queue: Queue, variables: list, formulas: list, context: Context) -> bool:
 	'''
 	版本：0.1
 	作用：处理数据
 	'''
 	if len(variables) == 0 or len(formulas) == 0:
 		return False
-	for data in qeue:
+	for data in queue:
 		if data == None or data.startswith(data_end_line):
 			break
 
-		if data.startswith(datatitle):
+		if data.startswith(datalabel):
 			print_data_title()
 			print(f"处理 {data.replace(";","").replace("\n","")} :")
 			continue
 		print_hanle_data()
 		print(data)
 		data = data.replace("\n","").split(" ")
-		data_dict = {"func":functions, "context":context, "pi":functions.pi, "e":functions.e}
+		data_dict = {"func":functions, "context":context, "pi":functions.pi, "e":functions.e} | context.py_self_define
 		for i in range(0,len(variables)):
-			data_dict[variables[i]] = eval(data[i])
+			data_dict[variables[i]] = eval(data[i], globals(),locals=data_dict)
 		for formula in formulas:
 			if formula.startswith(funcuse):
 
@@ -152,8 +166,8 @@ def handle_data(qeue: Qeue, variables: list, formulas: list, context: Context) -
 
 
 if __name__ == '__main__':
-	qeue = Qeue(["a b", "</variables>","a+b","a*b","</formulas>",";Rect1","2 4",";Rect2","6 7.0","</data>"])
+	queue = Queue(["a b", "</variables>","a+b","a*b","</formulas>",";Rect1","2 4",";Rect2","6 7.0","</data>"])
 	context = Context()
-	v_l = collect_variables(qeue)
-	f_l = collect_formulas(qeue)
-	handle_data(qeue,v_l,f_l,context)
+	v_l = collect_variables(queue)
+	f_l = collect_formulas(queue)
+	handle_data(queue,v_l,f_l,context)
