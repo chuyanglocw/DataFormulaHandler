@@ -1,0 +1,22 @@
+
+<variables>
+a b
+</variables>
+
+<py>
+def print_area(area):
+	print(f"Area:{area}")
+</py>
+
+<formulas>
+a+b
+area=a * b
+f-print_area(area)
+</formulas>
+
+<data>
+;Rect1
+1 2
+;Rect2
+2 4.0
+</data>

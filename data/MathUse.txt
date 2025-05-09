@@ -1,0 +1,13 @@
+"f-" standards no returns
+<variables>
+theta
+</variables>
+<formulas>
+f-context.setprec(10)
+func.sin(theta)
+</formulas>
+<data>
+pi/6
+pi/2
+pi
+</data>
