@@ -5,6 +5,9 @@
 描述:启动文件
 '''
 
+
+#TIP: 如果你需要自定义可以重写DFH类的handle方法, 并在handle方法中调用你自定义的方法
+
 from tools import DFH
 import sys;
 
@@ -22,29 +25,4 @@ if len(sys.argv) > 2:
 else:
 	input("按下任意按键退出...")
 sys.stdout = sys.__stdout__
-print("完成")
-
-#------------------------------------
-# 自定义示例
-#------------------------------------
-#
-# from tools import *
-#
-# file  = open(input("输入文件路径:"),"r")
-# qs = file.readlines()
-# file.close()
-# context = Context()
-# queue = Queue(qs)
-# while not queue.empty():
-# 	line = queue.dequeue()
-# 	if not line == None:
-# 		if line.startswith(variable_begin_line):
-# 			collect_variables(queue,context)
-# 		elif line.startswith(py_begin_line):
-# 			exec_py(queue,context)
-# 		elif line.startswith(begin_line):
-# 			collect_formulas(queue,context)
-# 		elif line.startswith(data_begin_line):
-# 			handle_data(queue,context)
-# input("按下任意按键退出...")
-#-------------------------------------
+print("完成Data处理!")

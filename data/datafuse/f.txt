@@ -1,0 +1,11 @@
+
+<variables>
+a b c
+</variables>
+<formulas>
+a + b * c
+</formulas>
+<dataf>
+d1.txt
+d2.txt
+</dataf>

@@ -2,16 +2,22 @@
 版本：0.1
 作者：初阳LOCW
 时间：2025.5.9
+更新时间：2025.5.10
 描述：这是DFH的主体内核
 	 之所以将 Context Queue 还有处理方法分离出 DFH类 是为了可以自定义处理
 '''
 
-#TODO 将个函数改回原本 传入 Queue Context 对象 方便自定义 并且在末尾添加 自定义开始、结束标识 默认为设定的常量
+# 更新日志：
+# * 添加 Queue类 peek、append_queue、put_queue_front方法。
+# * 对 DFH类 handle方法 进行了修改。
+# * 添加 数据文件 读取功能
+# * 修改读取方法，添加自定义开始和结束标识符为参数。
 
 import functions
+import os
 
-#TODO 添加 读取 数据文件的功能
 #TODO 添加 读取 Excel文件的功能
+#TODO 添加 执行 脚本文件的功能
 
 #--------------------------
 # 默认开始和结束的设定
@@ -22,7 +28,7 @@ data_begin_line = "<data>"
 py_begin_line = "<py>"
 data_file = "<dataf>"
 py_file = "<pyf>"
-excle_file = "<excel>"
+excel_file = "<excel>"
 
 # End
 variable_end_line = "</variables>"
@@ -31,7 +37,7 @@ data_end_line = "</data>"
 py_end_line = "</py>"
 data_file_end = "</dataf>"
 py_file_end = "</pyf>"
-excle_file_end = "</excel>"
+excel_file_end = "</excel>"
 #--------------------------
 
 funcuse = "f-"
@@ -62,6 +68,18 @@ class Queue:
 	def enqueue(self,value):
 		self.data.append(value)
 
+	def peek(self):
+		if not self.empty():
+			return self.data[0]
+
+	def append_queue(self,queue):
+		self.data = self.data + queue.data
+
+	def put_queue_front(self,queue):
+		self.data = queue.data + self.data
+	def __len__(self):
+		return len(self.data)
+
 	def dequeue(self):
 		if not self.empty():
 			return self.data.pop(0)
@@ -83,6 +101,9 @@ class DFH:
 		版本：0.1
 		作用：集合处理，方便主类做别的操作
 		'''
+		self.used_excel = False
+		self.file_path = file_path
+		self.path_folder = os.path.dirname(file_path)
 		self.queue = queue
 		if queue == None:
 			file  = open(file_path,"r")
@@ -101,58 +122,65 @@ class DFH:
 		'''
 		line = self.queue.dequeue()
 		if not line == None:
-			if line.startswith(variable_begin_line):
-				collect_variables(self)
-			elif line.startswith(py_begin_line):
-				exec_py(self)
-			elif line.startswith(begin_line):
-				self.formulas = collect_formulas(self)
-			elif line.startswith(data_begin_line):
-				handle_data(self)
+			collect_variables(self)
+			exec_py(self)
+			self.formulas = collect_formulas(self)
+			handle_data(self)
+			handle_data_file(self)
 
 	def use_excel(self):
 		'''
 		版本：0.1
 		作用：要求openpyxl用于使用Excel，这样是为了如果不用Excel而无法使用本程序
 		'''
+		if self.used_excel :
+			return
 		extension = {}
 		exec("import openpyxl as excel",None,extension)
 		self.context.setpyselfdefine(self.context.py_self_define | extension)
+		self.used_excel = True
 
 def print_begin_collect_variables():
 	print("------------------- 开始 输入变量 -------------------")
 def print_end_collect_variables():
 	print("------------------- 结束 输入变量 -------------------")
-def collect_variables(dfh: DFH):
+def collect_variables(dfh: DFH, begin_line: str = variable_begin_line, end_line: str = variable_end_line):
 	'''
 	版本：0.1
 	作用：获得变量表
 	'''
+	if dfh.queue.empty() or not dfh.queue.peek().startswith(begin_line):
+		return
+	dfh.queue.dequeue()
 	print_begin_collect_variables()
 	variables = []
 	for v_line in dfh.queue:
 		v_line = v_line.replace("\n","")
-		if v_line == None or v_line.startswith(variable_end_line):
+		if v_line == None or v_line.startswith(end_line):
 			break
 		v_list = v_line.split(" ")
 		for v in v_list:
 			variables.append(v)
 	dfh.context.variables = variables
+	print_end_collect_variables()
 
 
 def print_begin_exec_py():
 	print("------------------- 开始 执行脚本 -------------------")
 def print_end_exec_py():
 	print("------------------- 结束 执行脚本 -------------------")
-def exec_py(dfh: DFH):
+def exec_py(dfh: DFH, begin_line: str = py_begin_line, end_line: str = py_end_line):
 	'''
 	版本：0.1
 	作用：获得脚本来执行
 	'''
+	if dfh.queue.empty() or not dfh.queue.peek().startswith(begin_line):
+		return
+	dfh.queue.dequeue()
 	print_begin_exec_py()
 	cmd = ""
 	for cmd_line in dfh.queue:
-		if cmd_line == None or cmd_line.startswith(py_end_line):
+		if cmd_line == None or cmd_line.startswith(end_line):
 			break
 		cmd = f"{cmd}{cmd_line}"
 	print_end_exec_py()
@@ -160,15 +188,31 @@ def exec_py(dfh: DFH):
 	exec(cmd, None, py_self_define)
 	dfh.context.setpyselfdefine(py_self_define)
 
+def print_begin_handle_py_file():
+	print("----------------- 开始 处理脚本文件 -----------------")
+def print_end_handle_py_file():
+	print("----------------- 结束 处理脚本文件 -----------------")
+def exec_py_file(dfh : DFH, begin_line : str = py_file, end_line : str = py_file_end):
+	'''
+	版本：0.1
+	描述：执行脚本文件
+	'''
+	#TODO 待完善
+
+
+
 def print_begin_collect_formulas():
 	print("------------------- 开始 输入公式 -------------------")
 def print_end_collect_formulas():
 	print("------------------- 结束 输入公式 -------------------")
-def collect_formulas(dfh: DFH):
+def collect_formulas(dfh: DFH, begin_line: str = begin_line, end_line: str = end_line):
 	'''
 	版本：0.1
 	作用：获得公式表
 	'''
+	if dfh.queue.empty() or not dfh.queue.peek().startswith(begin_line):
+		return
+	dfh.queue.dequeue()
 	print_begin_collect_formulas()
 	formulas = []
 	for f_line in dfh.queue:
@@ -185,11 +229,16 @@ def print_data_title():
 	print("-----------------------------------------------------")
 def print_handle_data():
 	print("--------------------- 处理数据 ----------------------")
-def handle_data(dfh: DFH) -> bool:
+def handle_data(dfh: DFH, begin_line: str = data_begin_line, end_line : str = data_end_line) -> bool:
 	'''
 	版本：0.1
 	作用：处理数据
 	'''
+
+	if dfh.queue.empty() or not dfh.queue.peek().startswith(begin_line):
+		return False
+	dfh.queue.dequeue()
+
 	context = dfh.context
 	variables = context.variables
 	formulas = context.formulas
@@ -198,7 +247,7 @@ def handle_data(dfh: DFH) -> bool:
 	if len(variables) == 0 or len(formulas) == 0:
 		return False
 	for data in dfh.queue:
-		if data == None or data.startswith(data_end_line):
+		if data == None or data.startswith(end_line):
 			break
 
 		if data.startswith(datalabel):
@@ -231,6 +280,53 @@ def handle_data(dfh: DFH) -> bool:
 				out_f = float_output_format % data_dict["context"].prec
 			exec(f"print(f\"{out_f}\")",locals={"formula":formula,"_ans_":_ans_})
 	return True
+
+
+def print_begin_handle_data_file():
+	print("----------------- 开始 处理数据文件 -----------------")
+def print_end_handle_data_file():
+	print("----------------- 结束 处理数据文件 -----------------")
+def handle_data_file(dfh: DFH, begin_line: str = data_file, end_line : str = data_file_end):
+	'''
+	版本：0.1
+	作用：处理数据文件
+	'''
+	if dfh.queue.empty() or not dfh.queue.peek().startswith(begin_line):
+		return False
+	dfh.queue.dequeue()
+	print_begin_handle_data_file()
+	for data_file in dfh.queue:
+		if data_file == None or data_file.startswith(end_line):
+			break
+		file = open(f"{dfh.path_folder}/{data_file.replace("\n","")}","r")
+		qs = file.readlines()
+		file.close()
+		qs.insert(0,data_begin_line)
+		qs.append(data_end_line)
+		queue = Queue(qs)
+		dfh.queue.put_queue_front(queue)
+
+		print_data_title()
+		print(f"处理 {data_file.replace("\n","")} :")
+		handle_data(dfh)
+
+	print_end_handle_data_file()
+
+def print_begin_excel_file():
+	print("----------------- 开始 处理excel文件 ----------------")
+def print_end_excel_file():
+	print("----------------- 结束 处理excel文件 ----------------")
+def handle_excel_file(dfh: DFH, begin_line: str = excel_file, end_line : str = excel_file_end):
+	'''
+	版本：0.1
+	描述：处理Excel文件
+	'''
+	if dfh.queue.empty() or not dfh.queue.peek().startswith(excel_file):
+		return
+	dfh.queue.dequeue()
+	dfh.use_excel()
+	xl = dfh.context.setpyselfdefine["excel"]
+	#TODO 待完善
 
 
 if __name__ == '__main__':

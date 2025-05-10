@@ -1,9 +1,12 @@
 # Data-Formula Handler
 ### ***版本:0.1***
-### ***环境:Python***
+### ***环境:Windows、Python***
 ### ***作者:ChuYangLOCW***
 ## 介绍
 ***这个项目旨在使用公式处理较多数据.***
+## 更新
+***1.下载release更新UI程序.***
+***2.下载py_program文件夹下的py文件放到软件本地py_program文件夹下更新数据处理功能***
 
 ## 用法
 * ***创建一个txt文件***
