@@ -1,5 +1,7 @@
 .vscode/
 __pycache__/
+output/
+release/
 cpp_UI/bin/
 cpp_UI/include/SDL2/
 cpp_UI/obj/

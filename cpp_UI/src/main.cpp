@@ -10,6 +10,10 @@
 #include <SDL2/SDL_ttf.h>
 #undef main
 
+#include <DFH/View.hpp>
+#include <DFH/Button.hpp>
+#include <DFH/TextLine.hpp>
+
 #define FPS 60
 
 bool isRunning = true;
@@ -25,7 +29,9 @@ TTF_Font* font = NULL;
 SDL_Texture *inputPath, *outputPath, *authorLogo;
 SDL_Rect i_rect, o_rect, a_rect;
 
-
+DFH::Button* inputButton;
+DFH::TextLine* inputText;
+DFH::TextLine* outputText;
 
 void CompileText(){
 	TTF_Init();
@@ -48,6 +54,13 @@ void CompileText(){
 	surface = TTF_RenderUTF8_Solid(font,"DFH", color);
 	logo = SDL_CreateTextureFromSurface(renderer,surface);
 	SDL_FreeSurface(surface);
+
+	if (!inputPath || !outputPath || !authorLogo || !logo){
+		std::cout << "无法创建文本" << std::endl;
+		exit(1);
+	}else{
+		std::cout << "文本创建成功" << std::endl;
+	}
 }
 
 void InitWindow(){
@@ -62,6 +75,22 @@ void InitWindow(){
 	a_rect = SDL_Rect{50,550,135,15};
 	l_rect = SDL_Rect{310,80,480,160};
 
+	inputButton = new DFH::Button(SDL_Rect{620,475,60,60},SDL_Color{0,255,0,255},10,">",font,SDL_Color{0,0,0,255});
+
+	inputText = new DFH::TextLine(SDL_Rect{20,80,240,30},SDL_Color{145, 153, 157,255},10,"",font,SDL_Color{0,0,0,255});
+	outputText = new DFH::TextLine(SDL_Rect{20,170,240,30},SDL_Color{145, 153, 157,255},10,"",font,SDL_Color{0,0,0,255});
+
+	inputButton->setListener([](){
+		std::string input_path = inputText->getText();
+		std::string output_path = outputText->getText();
+		if (input_path.length() > 0 && output_path.length() > 0){
+			input_path = "..\\..\\" + input_path;
+			output_path = "..\\..\\output\\" + output_path + ".txt";
+			system(("python ..\\..\\py_program\\data_formula_handler.py " + input_path + " " + output_path).c_str());
+		}
+	});
+
+	std::cout << "初始化完成" << std::endl;
 }
 
 void Render(){
@@ -73,6 +102,10 @@ void Render(){
 	SDL_RenderCopy(renderer,authorLogo,NULL,&a_rect);
 	SDL_RenderCopy(renderer,logo,NULL,&l_rect);
 
+	inputButton->draw(renderer);
+	inputText->draw(renderer);
+	outputText->draw(renderer);
+
 	SDL_RenderPresent(renderer);
 }
 
@@ -80,13 +113,16 @@ void HandleEvent(Uint64 delta){
 	if (event.type == SDL_QUIT){
 		isRunning = false;
 	}
+	inputButton->update(event,delta);
+	inputText->update(event,delta);
+	outputText->update(event,delta);
 }
 
 void Loop(){
 	Uint64 start, end, delta = 0;
 	while (isRunning){
 		start = SDL_GetTicks64();
-		if (SDL_PollEvent(&event)){
+		while (SDL_PollEvent(&event)){
 			HandleEvent(delta);
 		}
 		Render();
@@ -107,11 +143,19 @@ void ReleaseWindowResource(){
 	TTF_CloseFont(font);
 	TTF_Quit();
 
+	delete inputButton;
+	delete inputText;
+	delete outputText;
+
+
 	SDL_DestroyRenderer(renderer);
 	SDL_DestroyWindow(window);
+
+	std::cout << "释放资源完成" << std::endl;
 }
 
 int main(){
+	system("chcp 65001");
 	SDL_Init(SDL_INIT_EVERYTHING);
 	InitWindow();
 	Loop();

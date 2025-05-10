@@ -6,12 +6,23 @@
 '''
 
 from tools import DFH
+import sys;
 
-dfh = DFH(input("输入文件路径:"))
+dfh = None
+
+if len(sys.argv) > 2:
+	dfh = DFH(sys.argv[1])
+	sys.stdout = open(sys.argv[2],"w")
+else:
+	dfh = DFH(input("输入文件路径:"))
 while dfh.is_active():
 	dfh.handle()
-input("按下任意按键退出...")
-
+if len(sys.argv) > 2:
+	sys.stdout.close()
+else:
+	input("按下任意按键退出...")
+sys.stdout = sys.__stdout__
+print("完成")
 
 #------------------------------------
 # 自定义示例
@@ -27,13 +38,13 @@ input("按下任意按键退出...")
 # while not queue.empty():
 # 	line = queue.dequeue()
 # 	if not line == None:
-# 		if line.startswith(variable_begine_line):
+# 		if line.startswith(variable_begin_line):
 # 			collect_variables(queue,context)
-# 		elif line.startswith(py_begine_line):
+# 		elif line.startswith(py_begin_line):
 # 			exec_py(queue,context)
-# 		elif line.startswith(begine_line):
+# 		elif line.startswith(begin_line):
 # 			collect_formulas(queue,context)
-# 		elif line.startswith(data_begine_line):
+# 		elif line.startswith(data_begin_line):
 # 			handle_data(queue,context)
 # input("按下任意按键退出...")
 #-------------------------------------

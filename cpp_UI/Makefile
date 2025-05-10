@@ -14,7 +14,7 @@ obj/%.o : src/%.cpp
 	$(CXX) $(I-flag) -c $< -o $@
 
 $(exe): $(obj)
-	$(CXX) $^ -o $@ $(I-flag) $(l-links) -mwindows
+	$(CXX) $^ -o $@ $(I-flag) $(l-links)
 
 build: $(exe)
 

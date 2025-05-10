@@ -15,11 +15,11 @@ import functions
 
 #--------------------------
 # 默认开始和结束的设定
-# Begine
-variable_begine_line = "<variables>"
-begine_line = "<formulas>"
-data_begine_line = "<data>"
-py_begine_line = "<py>"
+# Begin
+variable_begin_line = "<variables>"
+begin_line = "<formulas>"
+data_begin_line = "<data>"
+py_begin_line = "<py>"
 data_file = "<dataf>"
 py_file = "<pyf>"
 excle_file = "<excel>"
@@ -101,13 +101,13 @@ class DFH:
 		'''
 		line = self.queue.dequeue()
 		if not line == None:
-			if line.startswith(variable_begine_line):
+			if line.startswith(variable_begin_line):
 				collect_variables(self)
-			elif line.startswith(py_begine_line):
+			elif line.startswith(py_begin_line):
 				exec_py(self)
-			elif line.startswith(begine_line):
+			elif line.startswith(begin_line):
 				self.formulas = collect_formulas(self)
-			elif line.startswith(data_begine_line):
+			elif line.startswith(data_begin_line):
 				handle_data(self)
 
 	def use_excel(self):
@@ -119,7 +119,7 @@ class DFH:
 		exec("import openpyxl as excel",None,extension)
 		self.context.setpyselfdefine(self.context.py_self_define | extension)
 
-def print_begine_collect_variables():
+def print_begin_collect_variables():
 	print("------------------- 开始 输入变量 -------------------")
 def print_end_collect_variables():
 	print("------------------- 结束 输入变量 -------------------")
@@ -128,7 +128,7 @@ def collect_variables(dfh: DFH):
 	版本：0.1
 	作用：获得变量表
 	'''
-	print_begine_collect_variables()
+	print_begin_collect_variables()
 	variables = []
 	for v_line in dfh.queue:
 		v_line = v_line.replace("\n","")
@@ -140,7 +140,7 @@ def collect_variables(dfh: DFH):
 	dfh.context.variables = variables
 
 
-def print_begine_exec_py():
+def print_begin_exec_py():
 	print("------------------- 开始 执行脚本 -------------------")
 def print_end_exec_py():
 	print("------------------- 结束 执行脚本 -------------------")
@@ -149,7 +149,7 @@ def exec_py(dfh: DFH):
 	版本：0.1
 	作用：获得脚本来执行
 	'''
-	print_begine_exec_py()
+	print_begin_exec_py()
 	cmd = ""
 	for cmd_line in dfh.queue:
 		if cmd_line == None or cmd_line.startswith(py_end_line):
@@ -160,7 +160,7 @@ def exec_py(dfh: DFH):
 	exec(cmd, None, py_self_define)
 	dfh.context.setpyselfdefine(py_self_define)
 
-def print_begine_collect_formulas():
+def print_begin_collect_formulas():
 	print("------------------- 开始 输入公式 -------------------")
 def print_end_collect_formulas():
 	print("------------------- 结束 输入公式 -------------------")
@@ -169,7 +169,7 @@ def collect_formulas(dfh: DFH):
 	版本：0.1
 	作用：获得公式表
 	'''
-	print_begine_collect_formulas()
+	print_begin_collect_formulas()
 	formulas = []
 	for f_line in dfh.queue:
 		if f_line == None or f_line.startswith(end_line):
@@ -183,7 +183,7 @@ output_format = "{formula}={_ans_}"
 float_output_format = "{formula}={_ans_:.%df}"
 def print_data_title():
 	print("-----------------------------------------------------")
-def print_hanle_data():
+def print_handle_data():
 	print("--------------------- 处理数据 ----------------------")
 def handle_data(dfh: DFH) -> bool:
 	'''
@@ -205,7 +205,7 @@ def handle_data(dfh: DFH) -> bool:
 			print_data_title()
 			print(f"处理 {data.replace(";","").replace("\n","")} :")
 			continue
-		print_hanle_data()
+		print_handle_data()
 		print(data)
 		data = data.replace("\n","").split(" ")
 		data_dict = {"func":functions, "context":context, "pi":functions.pi, "e":functions.e} | context.py_self_define

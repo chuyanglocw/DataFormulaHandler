@@ -8,10 +8,10 @@ from math import *;
 def sum(data):
 	if len(data) == 0:
 		return 0
-	suma = 0
+	sum_a = 0
 	for i in data:
-		suma += i
-	return suma
+		sum_a += i
+	return sum_a
 
 def average(data):
 	if len(data) == 0:
@@ -24,8 +24,8 @@ def average(data):
 def variance(data):
 	if len(data) == 0:
 		return 0
-	averagea = average(data)
+	average_a = average(data)
 	sum = 0
 	for i in data:
-		sum += (i - averagea)**2
+		sum += (i - average_a)**2
 	return sum / len(data)
