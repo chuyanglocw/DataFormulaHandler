@@ -8,7 +8,7 @@
 
 #TIP: 如果你需要自定义可以重写DFH类的handle方法, 并在handle方法中调用你自定义的方法
 
-from tools import DFH
+from dfh_core import DFH
 import sys;
 
 dfh = None
