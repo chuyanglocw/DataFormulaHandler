@@ -1,0 +1,12 @@
+<variables>
+a
+</variables>
+<pyf>
+test.py
+</pyf>
+<formulas>
+f-print_ten(a)
+</formulas>
+<data>
+"Hello World"
+</data>

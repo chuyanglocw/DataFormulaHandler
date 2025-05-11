@@ -2,22 +2,23 @@
 版本：0.1
 作者：初阳LOCW
 时间：2025.5.9
-更新时间：2025.5.10
+更新时间：2025.5.11
 描述：这是DFH的主体内核
 	 之所以将 Context Queue 还有处理方法分离出 DFH类 是为了可以自定义处理
 '''
 
 # 更新日志：
-# * 添加 Queue类 peek、append_queue、put_queue_front方法。
-# * 对 DFH类 handle方法 进行了修改。
-# * 添加 数据文件 读取功能
-# * 修改读取方法，添加自定义开始和结束标识符为参数。
+# * 添加 读取py脚本文件
+# * 添加 re 正则表达式匹配 数据 如 字符串 括号 中括号 避免因为 空格 等 导致 错误
+# * 修复了 无法从第一行读取内容的问题
+
+# -添加小修改： 打印变量列表方便用户了解第几个是什么变量
 
 import functions
 import os
+import re
 
 #TODO 添加 读取 Excel文件的功能
-#TODO 添加 执行 脚本文件的功能
 
 #--------------------------
 # 默认开始和结束的设定
@@ -45,6 +46,11 @@ funcuse = "f-"
 temp_variable = "="
 
 datalabel = ";"
+
+#--------------------------
+
+pattern = r'\".*?\"|\(.*?\)|\[[^\[\]]*\]|[a-zA-Z0-9]+'
+
 
 #--------------------------
 
@@ -120,13 +126,12 @@ class DFH:
 		版本：0.1
 		作用：处理一条命令
 		'''
-		line = self.queue.dequeue()
-		if not line == None:
-			collect_variables(self)
-			exec_py(self)
-			self.formulas = collect_formulas(self)
-			handle_data(self)
-			handle_data_file(self)
+		collect_variables(self)
+		exec_py(self)
+		exec_py_file(self)
+		collect_formulas(self)
+		handle_data(self)
+		handle_data_file(self)
 
 	def use_excel(self):
 		'''
@@ -162,6 +167,7 @@ def collect_variables(dfh: DFH, begin_line: str = variable_begin_line, end_line:
 		for v in v_list:
 			variables.append(v)
 	dfh.context.variables = variables
+	print(f"变量顺序:{variables}")
 	print_end_collect_variables()
 
 
@@ -197,7 +203,20 @@ def exec_py_file(dfh : DFH, begin_line : str = py_file, end_line : str = py_file
 	版本：0.1
 	描述：执行脚本文件
 	'''
-	#TODO 待完善
+	if dfh.queue.empty() or not dfh.queue.peek().startswith(begin_line):
+		return
+	dfh.queue.dequeue()
+	print_begin_handle_py_file()
+	for py_line in dfh.queue:
+		if py_line == None or py_line.startswith(end_line):
+			break
+		py_line = py_line.replace("\n","")
+		py_file_path = os.path.join(dfh.path_folder,py_line)
+		py_file = open(py_file_path,"r")
+		py_cmd = py_file.read()
+		py_file.close()
+		exec(py_cmd, None, dfh.context.py_self_define)
+	print_end_handle_py_file()
 
 
 
@@ -255,8 +274,8 @@ def handle_data(dfh: DFH, begin_line: str = data_begin_line, end_line : str = da
 			print(f"处理 {data.replace(";","").replace("\n","")} :")
 			continue
 		print_handle_data()
-		print(data)
-		data = data.replace("\n","").split(" ")
+		data = data.replace("\n","")
+		data = re.findall(pattern, data)
 		data_dict = {"func":functions, "context":context, "pi":functions.pi, "e":functions.e} | context.py_self_define
 		for i in range(0,len(variables)):
 			data_dict[variables[i]] = eval(data[i], globals(),locals=data_dict)
