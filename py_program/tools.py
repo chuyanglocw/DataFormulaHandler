@@ -8,6 +8,9 @@
 
 # 更新日志：
 # * 将主体代码移动到 dfh_core.py
+# * 修复 通配符 不能匹配 负数和小数的问题
+
+#TODO 添加Excel输出功能
 
 #--------------------------
 # 默认开始和结束的设定
@@ -19,6 +22,7 @@ py_begin_line = "<py>"
 data_file = "<dataf>"
 py_file = "<pyf>"
 excel_file = "<excel>"
+output_to_excel_file = "<data-excel>"
 
 # End
 variable_end_line = "</variables>"
@@ -28,6 +32,7 @@ py_end_line = "</py>"
 data_file_end = "</dataf>"
 py_file_end = "</pyf>"
 excel_file_end = "</excel>"
+output_to_excel_file_end = "</data-excel>"
 #--------------------------
 
 funcuse = "f-"
@@ -38,7 +43,7 @@ datalabel = ";"
 
 #--------------------------
 
-pattern = r'\".*?\"|\(.*?\)|\[[^\[\]]*\]|[a-zA-Z0-9]+'
+pattern = r'\".*?\"|\(.*?\)|\[[^\[\]]*\]|[a-zA-Z0-9.-]+'
 
 #--------------------------
 
@@ -54,6 +59,9 @@ class Context:
 		self.prec = 12
 		self.py_self_define = {}
 		self.define = {}
+		self.output_to_excel = False
+		self.excel_output_file = None
+		self.excel_output_pointer = [1,1]
 
 	def setprec(self, prec):
 		self.prec = prec
@@ -127,6 +135,16 @@ def read_value_from_excel(dfh_namespace : dict, row: int, col: int):
 	'''
 	sheet = dfh_namespace["excel_file_instance"].active
 	return sheet[excel_col_transfrom(col) + str(row)].value
+
+def write_value_to_excel(dfh_namespace : dict, row: int, col: int, value):
+	'''
+	版本：0.1
+	作用：将值写入Excel文件
+	参数：excel_file: str Excel文件路径, row: int 行号, col: int 列号, value: str 值
+	返回：None
+	'''
+	sheet = dfh_namespace["excel_file_instance"].active
+	sheet[excel_col_transfrom(col) + str(row)] = value
 
 # 测试代码
 if __name__ == "__main__":
